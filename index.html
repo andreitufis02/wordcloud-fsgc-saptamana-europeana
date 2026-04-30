@@ -1,0 +1,1303 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" type="image/png" href="logo/FSGC-06.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Word Cloud · Uniunea Europeană · FSGC</title>
+  <style>
+    :root {
+      --ink: #10131a;
+      --muted: #687080;
+      --line: #d7dce5;
+      --paper: #f5f7fb;
+      --white: #fff;
+      --eu: #003399;
+      --gold: #ffcc00;
+      --steel: #27364a;
+      --aqua: #1f9fb8;
+      --green: #258a68;
+      --red: #bd3d35;
+      --shadow: 0 22px 70px rgba(16, 19, 26, .13);
+      --radius: 8px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(0, 51, 153, .06) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(16, 19, 26, .05) 1px, transparent 1px),
+        var(--paper);
+      background-size: 56px 56px;
+    }
+
+    button, input { font: inherit; }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(270px, 350px) minmax(0, 1fr);
+    }
+
+    .rail {
+      background: #10131a;
+      color: var(--white);
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .rail::before {
+      content: "";
+      position: absolute;
+      inset: auto -120px -120px auto;
+      width: 280px;
+      height: 280px;
+      background: conic-gradient(from 10deg, var(--gold), transparent 22%, var(--eu), transparent 61%, var(--gold));
+      opacity: .22;
+      border-radius: 50%;
+      filter: blur(2px);
+    }
+
+    .brand {
+      position: relative;
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      padding-bottom: 28px;
+      border-bottom: 1px solid rgba(255,255,255,.16);
+    }
+
+    .flag {
+      width: 72px;
+      height: 48px;
+      background: var(--eu);
+      border-radius: 4px;
+      position: relative;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.18);
+      flex: 0 0 auto;
+    }
+
+    .star {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 3px;
+      height: 3px;
+      background: var(--gold);
+      border-radius: 50%;
+      transform-origin: 0 0;
+      box-shadow: 0 0 0 1px rgba(255,204,0,.6);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.08;
+      letter-spacing: 0;
+      font-weight: 760;
+    }
+
+    .brand p {
+      margin: 6px 0 0;
+      font-size: 12px;
+      color: rgba(255,255,255,.66);
+    }
+
+    .event-logo-card {
+      position: relative;
+      margin: 18px 0 0;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.96);
+      border-radius: var(--radius);
+      padding: 10px;
+      box-shadow: 0 16px 36px rgba(0,0,0,.2);
+    }
+
+    .event-logo-card img {
+      display: block;
+      width: 100%;
+      max-height: 126px;
+      object-fit: contain;
+      border-radius: 5px;
+    }
+
+    .metric {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 28px 0;
+    }
+
+    .metric div {
+      border: 1px solid rgba(255,255,255,.14);
+      padding: 14px;
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.04);
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 30px;
+      line-height: 1;
+    }
+
+    .metric span {
+      display: block;
+      margin-top: 7px;
+      color: rgba(255,255,255,.62);
+      font-size: 12px;
+    }
+
+    .insight {
+      position: relative;
+      border-top: 1px solid rgba(255,255,255,.16);
+      border-bottom: 1px solid rgba(255,255,255,.16);
+      padding: 22px 0;
+      margin-bottom: 24px;
+    }
+
+    .insight h2 {
+      margin: 0 0 10px;
+      font-size: 12px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.66);
+    }
+
+    .insight p {
+      margin: 0;
+      color: rgba(255,255,255,.86);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .top-words {
+      position: relative;
+      display: grid;
+      gap: 9px;
+    }
+
+    .top-word {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.04);
+      border-radius: 6px;
+      padding: 10px 12px;
+      color: rgba(255,255,255,.86);
+      font-size: 13px;
+    }
+
+    .top-word b {
+      color: var(--gold);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .rail-footer {
+      position: relative;
+      margin-top: auto;
+      color: rgba(255,255,255,.62);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    main {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      min-height: 74px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 18px 34px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(245,247,251,.88);
+      backdrop-filter: blur(16px);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .kicker {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 13px;
+      min-width: 0;
+    }
+
+    .pulse {
+      width: 9px;
+      height: 9px;
+      background: var(--aqua);
+      border-radius: 50%;
+      box-shadow: 0 0 0 6px rgba(31,159,184,.13);
+      flex: 0 0 auto;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: var(--white);
+      color: var(--ink);
+      border-radius: 6px;
+      min-height: 40px;
+      padding: 0 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(16,19,26,.08);
+      border-color: #aeb7c6;
+    }
+
+    .btn.primary {
+      background: var(--ink);
+      color: var(--white);
+      border-color: var(--ink);
+    }
+
+    .btn.eu {
+      background: var(--eu);
+      color: var(--white);
+      border-color: var(--eu);
+    }
+
+    .btn.icon {
+      width: 42px;
+      padding: 0;
+      font-size: 18px;
+    }
+
+    .stage {
+      width: min(1260px, 100%);
+      margin: 0 auto;
+      padding: 34px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(300px, .75fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .hero {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .hero-head {
+      min-height: 260px;
+      padding: 34px;
+      background:
+        linear-gradient(135deg, rgba(0,51,153,.98), rgba(16,19,26,.96)),
+        radial-gradient(circle at 78% 20%, rgba(255,204,0,.38), transparent 22%);
+      color: var(--white);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-head::after {
+      content: "";
+      position: absolute;
+      right: -76px;
+      top: -96px;
+      width: 260px;
+      height: 260px;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 50%;
+      box-shadow: 0 0 0 34px rgba(255,255,255,.035), 0 0 0 68px rgba(255,204,0,.04);
+    }
+
+    .theme {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255,255,255,.72);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-head h2 {
+      position: relative;
+      z-index: 1;
+      margin: 22px 0 0;
+      font-size: clamp(34px, 5.4vw, 72px);
+      line-height: .95;
+      letter-spacing: 0;
+      max-width: 900px;
+    }
+
+    .hero-head p {
+      position: relative;
+      z-index: 1;
+      margin: 20px 0 0;
+      color: rgba(255,255,255,.76);
+      line-height: 1.55;
+      max-width: 720px;
+      font-size: 16px;
+    }
+
+    .entry {
+      padding: 26px 30px 30px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .input-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .word-input {
+      min-height: 58px;
+      border: 1px solid #bdc6d4;
+      border-radius: var(--radius);
+      background: #fbfcff;
+      color: var(--ink);
+      padding: 0 18px;
+      font-size: 20px;
+      outline: none;
+      transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
+      width: 100%;
+    }
+
+    .word-input:focus {
+      border-color: var(--eu);
+      box-shadow: 0 0 0 4px rgba(0,51,153,.1);
+      background: var(--white);
+    }
+
+    .helper {
+      display: flex;
+      gap: 12px;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      flex-wrap: wrap;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      border: 1px solid var(--line);
+      background: #fbfcff;
+      border-radius: 999px;
+      padding: 8px 11px;
+      cursor: pointer;
+      color: #334052;
+      font-size: 13px;
+      transition: transform .16s ease, border-color .16s ease, background .16s ease;
+    }
+
+    .chip:hover {
+      transform: translateY(-1px);
+      border-color: #aab4c4;
+      background: var(--white);
+    }
+
+    .cloud-panel {
+      margin-top: 24px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 12px 34px rgba(16,19,26,.07);
+      overflow: hidden;
+    }
+
+    .cloud-toolbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .cloud-toolbar h3 {
+      margin: 0;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+    }
+
+    .cloud {
+      min-height: 430px;
+      padding: 28px;
+      display: flex;
+      flex-wrap: wrap;
+      align-content: center;
+      justify-content: center;
+      gap: 14px 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cloud::before {
+      content: "";
+      position: absolute;
+      inset: 24px;
+      border: 1px dashed rgba(0,51,153,.15);
+      border-radius: 50%;
+      transform: rotate(-7deg);
+      pointer-events: none;
+    }
+
+    .cloud-word {
+      position: relative;
+      z-index: 1;
+      font-weight: 820;
+      line-height: 1;
+      letter-spacing: 0;
+      color: var(--ink);
+      padding: .08em .12em;
+      border-radius: 6px;
+      animation: enter .38s ease both;
+      transition: transform .16s ease, color .16s ease, background .16s ease;
+      cursor: default;
+    }
+
+    .cloud-word:hover {
+      transform: scale(1.06) rotate(0deg) !important;
+      background: rgba(255,204,0,.16);
+    }
+
+    .cloud-empty {
+      position: relative;
+      z-index: 1;
+      color: var(--muted);
+      text-align: center;
+      max-width: 420px;
+      line-height: 1.55;
+    }
+
+    @keyframes enter {
+      from { opacity: 0; transform: translateY(8px) scale(.94); }
+      to { opacity: 1; }
+    }
+
+    .side {
+      display: grid;
+      gap: 16px;
+    }
+
+    .card {
+      background: rgba(255,255,255,.88);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: 0 12px 34px rgba(16,19,26,.07);
+    }
+
+    .card h3 {
+      margin: 0 0 12px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+    }
+
+    .fact-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--eu);
+      color: var(--white);
+      font-weight: 840;
+      margin-bottom: 14px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .fact-text {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.28;
+      font-weight: 720;
+      letter-spacing: 0;
+      color: var(--ink);
+    }
+
+    .fact-source {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+
+    .fact-progress {
+      height: 4px;
+      background: #e1e6ef;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 18px;
+    }
+
+    .fact-progress span {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, var(--eu), var(--aqua), var(--gold));
+      animation: factTimer 15s linear infinite;
+    }
+
+    @keyframes factTimer {
+      from { width: 0; }
+      to { width: 100%; }
+    }
+
+    .signal {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 12px 0;
+      border-top: 1px solid var(--line);
+      color: #384252;
+      line-height: 1.45;
+      font-size: 14px;
+    }
+
+    .signal:first-of-type { border-top: 0; }
+
+    .signal b {
+      display: grid;
+      place-items: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      flex: 0 0 auto;
+      background: rgba(0,51,153,.1);
+      color: var(--eu);
+    }
+
+    .admin-hotspot {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      width: 38px;
+      height: 38px;
+      opacity: 0;
+      z-index: 50;
+      border: 0;
+      background: transparent;
+      cursor: default;
+    }
+
+    .modal-wrap {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      background: rgba(16,19,26,.76);
+      backdrop-filter: blur(10px);
+      padding: 24px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-wrap.show { display: flex; }
+
+    .modal {
+      width: min(980px, 100%);
+      max-height: min(760px, calc(100vh - 48px));
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-head {
+      background: var(--ink);
+      color: var(--white);
+      padding: 24px 28px;
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-start;
+    }
+
+    .modal-head h2 {
+      margin: 8px 0 0;
+      font-size: clamp(28px, 5vw, 50px);
+      line-height: .95;
+    }
+
+    .modal-body {
+      padding: 22px 28px 28px;
+      overflow: auto;
+      display: grid;
+      gap: 18px;
+    }
+
+    .admin-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .admin-stat {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px;
+      background: #fbfcff;
+    }
+
+    .admin-stat strong {
+      display: block;
+      font-size: 26px;
+      line-height: 1;
+    }
+
+    .admin-stat span {
+      display: block;
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .table-wrap {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: auto;
+      max-height: 310px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      min-width: 680px;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f0f3f8;
+      color: #4f5a6a;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      font-size: 11px;
+      position: sticky;
+      top: 0;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .danger {
+      color: #fff;
+      background: var(--red);
+      border-color: var(--red);
+    }
+
+    @media (max-width: 1050px) {
+      .app { grid-template-columns: 1fr; }
+      .rail {
+        position: relative;
+        height: auto;
+        padding: 22px;
+      }
+      .stage { grid-template-columns: 1fr; padding: 20px; }
+      .rail-footer { display: none; }
+      .top-words { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 680px) {
+      .topbar { position: relative; padding: 16px 20px; align-items: flex-start; flex-direction: column; }
+      .actions { width: 100%; justify-content: stretch; }
+      .actions .btn { flex: 1; }
+      .btn.icon { flex: 0 0 42px; }
+      .hero-head, .entry { padding: 22px; }
+      .hero-head { min-height: 220px; }
+      .input-row { grid-template-columns: 1fr; }
+      .cloud { min-height: 360px; padding: 20px; }
+      .top-words { grid-template-columns: 1fr; }
+      .admin-grid { grid-template-columns: repeat(2, 1fr); }
+      .modal-head { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="rail">
+      <div class="brand">
+        <div class="flag" id="flag"></div>
+        <div>
+          <h1>Word Cloud · FSGC</h1>
+          <p>Percepția colectivă despre Uniunea Europeană</p>
+        </div>
+      </div>
+
+      <div class="event-logo-card">
+        <img src="../assets/saptamana-europeana.png" alt="Săptămâna Europeană" />
+      </div>
+
+      <div class="metric">
+        <div>
+          <strong id="totalCount">0</strong>
+          <span>intrări salvate</span>
+        </div>
+        <div>
+          <strong id="uniqueCount">0</strong>
+          <span>cuvinte unice</span>
+        </div>
+      </div>
+
+      <section class="insight">
+        <h2>Întrebare live</h2>
+        <p>Care este primul cuvânt care îți vine în minte când auzi „Uniunea Europeană”?</p>
+      </section>
+
+      <div class="top-words" id="topWords"></div>
+
+
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div class="kicker">
+          <span class="pulse"></span>
+          <span id="topline">Răspunsurile apar instant în cloud și rămân salvate local.</span>
+        </div>
+        <div class="actions">
+          <button class="btn icon" id="soundBtn" title="Sunet pornit/oprit" aria-label="Sunet pornit/oprit">♪</button>
+          <button class="btn" id="focusBtn">Sus</button>
+          <button class="btn eu" id="shuffleFactBtn">Fun fact</button>
+        </div>
+      </header>
+
+      <section class="stage">
+        <div>
+          <article class="hero">
+            <div class="hero-head">
+              <div class="theme">Săptămâna Europeană · input anonim · live word cloud</div>
+              <h2>Un cuvânt. O percepție. O hartă comună.</h2>
+              <p>Elevii răspund rapid, instinctiv, fără răspuns „corect”. Platforma transformă reacțiile într-un cloud vizual care arată imediat tonul clasei: libertate, Erasmus, reguli, pace, Schengen, viitor, confuzie.</p>
+            </div>
+            <div class="entry">
+              <form class="input-row" id="wordForm" autocomplete="off">
+                <input class="word-input" id="wordInput" maxlength="32" placeholder="Scrie primul cuvânt..." aria-label="Scrie primul cuvânt care îți vine în minte" />
+                <button class="btn primary" type="submit">Adaugă în cloud →</button>
+              </form>
+              <div class="helper">
+                <span id="saveNote">Răspunsurile sunt anonime și stocate în browser.</span>
+                <span>Enter pentru trimitere · un cuvânt sau o expresie scurtă</span>
+              </div>
+              <div class="chips" id="suggestions"></div>
+            </div>
+          </article>
+
+          <section class="cloud-panel">
+            <div class="cloud-toolbar">
+              <h3>Cloud colectiv</h3>
+              <button class="btn" id="displayModeBtn">Mod prezentare</button>
+            </div>
+            <div class="cloud" id="cloud"></div>
+          </section>
+        </div>
+
+        <aside class="side">
+          <section class="card">
+            <h3>Fun fact UE</h3>
+            <div class="fact-number" id="factNumber">001</div>
+            <p class="fact-text" id="factText"></p>
+            <div class="fact-source" id="factSource"></div>
+            <div class="fact-progress"><span id="factProgress"></span></div>
+          </section>
+
+
+        </aside>
+      </section>
+    </main>
+  </div>
+
+  <button class="admin-hotspot" id="adminHotspot" aria-label="Panou ascuns"></button>
+
+  <div class="modal-wrap" id="adminModal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
+      <div class="modal-head">
+        <div>
+          <div class="theme">Panou profesor · intrări brute</div>
+          <h2 id="adminTitle">Back office</h2>
+        </div>
+        <button class="btn" id="closeAdmin">Închide</button>
+      </div>
+      <div class="modal-body">
+        <div class="admin-grid">
+          <div class="admin-stat"><strong id="adminTotal">0</strong><span>intrări totale</span></div>
+          <div class="admin-stat"><strong id="adminUnique">0</strong><span>cuvinte unice</span></div>
+          <div class="admin-stat"><strong id="adminTop">-</strong><span>cel mai frecvent</span></div>
+          <div class="admin-stat"><strong id="adminLast">-</strong><span>ultima intrare</span></div>
+        </div>
+        <div class="actions">
+          <button class="btn" id="exportCsv">Export CSV</button>
+          <button class="btn" id="exportJson">Export JSON</button>
+          <button class="btn danger" id="clearData">Șterge datele</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Cuvânt original</th>
+                <th>Normalizat</th>
+                <th>Dată / oră</th>
+                <th>Frecvență</th>
+              </tr>
+            </thead>
+            <tbody id="entriesTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "fsgc-eu-wordcloud-v1";
+    const palette = ["#003399", "#10131a", "#1f9fb8", "#258a68", "#6d5dd3", "#bd3d35", "#a16a00", "#27364a"];
+    const sampleWords = ["libertate", "Erasmus", "pace", "Schengen", "drepturi", "viitor", "reguli", "Europa", "birocrație", "oportunități"];
+    const facts = [
+      ["001", "UE are 27 de state membre.", "European Union, Key facts and figures"],
+      ["002", "Uniunea Europeană are 24 de limbi oficiale.", "European Union, Languages, multilingualism, language rules"],
+      ["003", "Limbile oficiale includ și malteza, irlandeza, croata, româna și bulgara.", "European Union, Languages, multilingualism, language rules"],
+      ["004", "Aproximativ 43 de milioane de rezidenți ai UE sunt cetățeni străini.", "European Union, Key facts and figures"],
+      ["005", "În medie, 3,1% dintre persoanele care locuiesc într-un stat UE sunt cetățeni ai altui stat membru UE.", "European Union, Key facts and figures"],
+      ["006", "UE are un PIB de aproape 18 trilioane de euro.", "European Union, Key facts and figures"],
+      ["007", "Germania are cea mai mare pondere în PIB-ul UE, urmată de Franța și Italia.", "European Union, Key facts and figures"],
+      ["008", "Serviciile generează aproximativ 74% din PIB-ul Uniunii Europene.", "European Union, Key facts and figures"],
+      ["009", "Aproximativ 74% din forța de muncă a UE lucrează în servicii.", "European Union, Key facts and figures"],
+      ["010", "UE este cel mai mare exportator mondial de bunuri manufacturate și servicii.", "European Union, Key facts and figures"],
+      ["011", "UE reprezintă aproximativ 14% din comerțul mondial cu bunuri.", "European Union, Key facts and figures"],
+      ["012", "UE este cea mai importantă destinație turistică din lume.", "European Union, Key facts and figures"],
+      ["013", "Spania, Franța, Italia și Germania depășesc fiecare 430 de milioane de nopți turistice anual.", "European Union, Key facts and figures"],
+      ["014", "Rezidenții UE fac aproape 1,2 miliarde de călătorii turistice într-un an.", "European Union, Key facts and figures"],
+      ["015", "Aproape jumătate dintre elevii din învățământul secundar superior din UE studiază două sau mai multe limbi străine.", "European Union, Key facts and figures"],
+      ["016", "Drapelul UE are 12 stele aurii pe fond albastru, dar 12 nu reprezintă numărul statelor membre.", "European Union, EU flag"],
+      ["017", "Cele 12 stele simbolizează unitate, solidaritate și armonie între popoarele Europei.", "European Union, EU flag"],
+      ["018", "Drapelul european simbolizează atât UE, cât și identitatea și unitatea Europei.", "European Union, EU flag"],
+      ["019", "Imnul UE este „Oda bucuriei” din Simfonia a IX-a de Beethoven.", "European Union, Symbols"],
+      ["020", "Imnul UE nu are versuri oficiale, tocmai pentru a nu favoriza o limbă.", "European Union, Symbols"],
+      ["021", "„Oda bucuriei” a devenit imnul oficial al UE în 1985.", "European Union, Symbols"],
+      ["022", "Deviza UE este „Unitate în diversitate”.", "European Union, EU motto"],
+      ["023", "Deviza „Unitate în diversitate” a fost adoptată în anul 2000.", "European Union, EU motto"],
+      ["024", "Deviza UE a fost aleasă din aproximativ 80.000 de propuneri.", "European Union, EU motto"],
+      ["025", "Ziua Europei este sărbătorită în fiecare an pe 9 mai.", "European Union, Europe Day - May 9"],
+      ["026", "Ziua Europei marchează Declarația Schuman din 9 mai 1950.", "European Union, Schuman Declaration May 1950"],
+      ["027", "În 2026 se marchează 40 de ani de la primele celebrări oficiale ale Zilei Europei.", "European Union, Europe Day - May 9"],
+      ["028", "De Ziua Europei, instituțiile UE își deschid ușile pentru public.", "European Union, Plan a visit to an EU institution"],
+      ["029", "Declarația Schuman a fost prezentată de Robert Schuman la 9 mai 1950.", "European Union, Schuman Declaration May 1950"],
+      ["030", "Declarația Schuman propunea Comunitatea Europeană a Cărbunelui și Oțelului.", "European Union, Schuman Declaration May 1950"],
+      ["031", "Prima comunitate europeană supranațională a pornit de la cărbune și oțel.", "European Union, History of the EU - 1945-59"],
+      ["032", "Primele șase țări au fost Germania, Franța, Italia, Țările de Jos, Belgia și Luxemburg.", "European Union, History of the EU - 1945-59"],
+      ["033", "Ideea era ca industriile-cheie gestionate împreună să facă războiul mult mai greu de pornit.", "European Union, History of the EU - 1945-59"],
+      ["034", "În 2004, UE a trecut de la 15 la 25 de state membre.", "European Commission, 20 years together"],
+      ["035", "Zece state au intrat în UE la 1 mai 2004.", "European Commission, 20 years together"],
+      ["036", "Bulgaria și România au intrat în UE la 1 ianuarie 2007.", "European Commission, Together in the EU"],
+      ["037", "Croația a intrat în UE la 1 iulie 2013.", "European Union, Croatia - EU country"],
+      ["038", "Croația a devenit membră a zonei euro și Schengen la 1 ianuarie 2023.", "European Union, Croatia - EU country"],
+      ["039", "În 2012, Uniunea Europeană a primit Premiul Nobel pentru Pace.", "European Union, History of the EU - 2010-19"],
+      ["040", "După extinderea din 2004, economiile Poloniei și Maltei s-au mai mult decât dublat.", "European Commission, 20 years together - facts and figures"],
+      ["041", "Economia UE a crescut cu 27% în cei 20 de ani următori extinderii din 2004.", "European Commission, 20 years together - facts and figures"],
+      ["042", "Țările candidate includ, între altele, Moldova, Serbia, Ucraina și Muntenegru.", "European Union, EU enlargement"],
+      ["043", "Moldova și Ucraina au primit statut de candidate în iunie 2022.", "European Union, EU enlargement"],
+      ["044", "UE are 7 instituții europene, 9 organisme și peste 30 de agenții descentralizate.", "European Union, Types of institutions, bodies and agencies"],
+      ["045", "Instituțiile UE sunt răspândite în mai multe orașe europene.", "European Union, Types of institutions, bodies and agencies"],
+      ["046", "Parlamentul European este singura instituție UE aleasă direct de cetățeni.", "European Parliament, European Parliament"],
+      ["047", "Parlamentul European are 720 de membri în legislatura 2024-2029.", "European Parliament, European Parliament"],
+      ["048", "Numărul de eurodeputați 2024-2029 a crescut cu 15 față de legislatura precedentă.", "European Parliament, How many MEPs per country"],
+      ["049", "Eurodeputații sunt grupați după afinitate politică, nu după naționalitate.", "European Parliament, Home | MEPs"],
+      ["050", "În Parlamentul European există 8 grupuri politice.", "European Parliament, European Parliament"],
+      ["051", "Eurodeputații sunt aleși prin sufragiu universal direct din 1979.", "European Parliament, The Members"],
+      ["052", "Alegerile europene folosesc principiul reprezentării proporționale.", "European Parliament, The Members"],
+      ["053", "La începutul legislaturii 2024-2029, 50% dintre eurodeputați erau la primul mandat.", "European Parliament, Facts and figures 2024-2029"],
+      ["054", "În legislatura 2024-2029, 39% dintre eurodeputații aleși sunt femei.", "European Parliament, Facts and figures 2024-2029"],
+      ["055", "Vârsta de vot la europene este 16 ani în Austria, Belgia, Germania și Malta.", "European Parliament, Home | MEPs"],
+      ["056", "Președinția Consiliului UE este deținută pe rând de state, câte șase luni.", "Council of the EU, Presidency of the Council"],
+      ["057", "Fiecare țară ajunge la Președinția Consiliului aproximativ o dată la 13 ani și jumătate.", "Council of the EU, Council explainer"],
+      ["058", "Sistemul trio al președințiilor a fost introdus prin Tratatul de la Lisabona.", "Council of the EU, List of presidencies"],
+      ["059", "Comisia Europeană are 27 de comisari, câte unul din fiecare stat membru.", "European Commission, College of Commissioners"],
+      ["060", "Colegiul comisarilor este numit pentru un mandat de 5 ani.", "European Commission, College of Commissioners"],
+      ["061", "Comisia propune legislație, gestionează bugetul și veghează la respectarea tratatelor.", "European Commission, official website"],
+      ["062", "Un nou Colegiu al comisarilor este numit o dată la 5 ani.", "European Commission, Organisation"],
+      ["063", "Euro este moneda a 21 de state membre ale UE.", "European Commission, The euro"],
+      ["064", "Danemarca are o clauză de opt-out față de moneda unică.", "European Commission, The euro"],
+      ["065", "Bancnotele euro au același design în toate țările din zona euro.", "European Commission, Euro banknotes"],
+      ["066", "Există șapte valori nominale ale bancnotelor euro.", "European Commission, Euro banknotes"],
+      ["067", "Fața bancnotelor euro arată ferestre și porți, simboluri ale deschiderii.", "European Central Bank, Design elements"],
+      ["068", "Spatele bancnotelor euro arată poduri, simboluri ale comunicării.", "European Central Bank, Design elements"],
+      ["069", "Bancnotele euro nu reprezintă clădiri reale, ci stiluri arhitecturale europene.", "European Central Bank, Design elements"],
+      ["070", "Monedele euro au o față comună și o față specifică fiecărei țări.", "European Commission, Types of euro coins"],
+      ["071", "Fața comună a monedelor euro a fost proiectată de Luc Luycx.", "European Commission, Types of euro coins"],
+      ["072", "Kosovo și Muntenegru folosesc euro ca monedă de facto.", "European Commission, The euro outside the euro area"],
+      ["073", "Andorra, San Marino, Monaco și Vaticanul au acorduri monetare cu UE pentru euro.", "European Commission, Legislation on euro coins"],
+      ["074", "Cetățenii pot schimba gratuit vechile bancnote și monede naționale la băncile centrale naționale.", "European Commission, Euro coins and notes"],
+      ["075", "Spațiul Schengen a început în 1985.", "European Union, Key facts and figures"],
+      ["076", "Toate statele UE, cu excepția Ciprului și Irlandei, fac parte din Schengen.", "European Union, Key facts and figures"],
+      ["077", "Bulgaria și România au intrat în spațiul Schengen în martie 2024.", "European Union, Key facts and figures"],
+      ["078", "Libera circulație înseamnă că cetățenii UE pot călători, lucra și locui în orice țară UE.", "European Union, Key facts and figures"],
+      ["079", "Programul Erasmus+ a început în 1987.", "European Union, Key facts and figures"],
+      ["080", "În primul an Erasmus au participat 3.200 de studenți din 11 țări.", "European Union, Key facts and figures"],
+      ["081", "Erasmus+ a permis până acum unui număr de 16 milioane de persoane să studieze în 33 de țări.", "European Union, Key facts and figures"],
+      ["082", "Erasmus+ are un buget estimat de 26,2 miliarde de euro pentru 2021-2027.", "European Commission, Erasmus+ funding programme"],
+      ["083", "Inițiativa cetățenească europeană permite cetățenilor să ceară Comisiei să propună acte legislative.", "European Citizens' Initiative"],
+      ["084", "O inițiativă cetățenească europeană are nevoie de 1 milion de semnături valide.", "European Commission, European citizens' initiative"],
+      ["085", "Inițiativa cetățenească europeană a fost introdusă în 2012.", "European Citizens' Initiative"],
+      ["086", "Inițiativa cetățenească europeană a strâns aproximativ 25 de milioane de semnături.", "European Citizens' Initiative"],
+      ["087", "129 de inițiative cetățenești europene au fost înregistrate.", "European Citizens' Initiative"],
+      ["088", "12 inițiative cetățenești europene au atins pragul de 1 milion de semnături.", "European Citizens' Initiative"],
+      ["089", "Pentru a lansa o inițiativă este nevoie de 7 membri din cel puțin 7 state membre.", "EUR-Lex, The citizens' initiative"],
+      ["090", "Forumul Inițiativei Cetățenești Europene oferă consiliere în cele 24 de limbi oficiale.", "European Citizens' Initiative Forum"],
+      ["091", "Premiul LUX Audience Award este acordat de Parlamentul European și Academia Europeană de Film.", "European Parliament, LUX Audience Award"],
+      ["092", "Parlamentul European organizează proiecții gratuite ale filmelor LUX în toate țările UE.", "European Parliament, LUX films"],
+      ["093", "UE și-a propus să devină primul continent neutru climatic până în 2050.", "European Union, Key facts and figures"],
+      ["094", "UE vrea reducerea emisiilor nete cu cel puțin 55% până în 2030 față de 1990.", "European Union, Key facts and figures"],
+      ["095", "În ultimul deceniu, emisiile de gaze cu efect de seră ale UE au scăzut cu 19%.", "European Union, Key facts and figures"],
+      ["096", "Aproape 70% din energia UE este încă produsă din cărbune, petrol și gaze.", "European Union, Key facts and figures"],
+      ["097", "Dependența UE de importurile de combustibili este de 58%.", "European Union, Key facts and figures"],
+      ["098", "24,5% din energia consumată în UE provine din surse regenerabile.", "European Union, Key facts and figures"],
+      ["099", "Sursele regenerabile sunt principala sursă pentru producția de electricitate în UE.", "European Union, Key facts and figures"],
+      ["100", "Suedia este liderul UE la energie regenerabilă.", "European Union, Key facts and figures"]
+    ];
+
+    const state = {
+      entries: loadEntries(),
+      muted: false,
+      audio: null,
+      factIndex: Math.floor(Math.random() * facts.length),
+      presentation: false
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function initFlag() {
+      const flag = $("flag");
+      for (let i = 0; i < 12; i++) {
+        const star = document.createElement("span");
+        star.className = "star";
+        const angle = (i / 12) * Math.PI * 2;
+        star.style.transform = `translate(${Math.cos(angle) * 17}px, ${Math.sin(angle) * 13}px)`;
+        flag.appendChild(star);
+      }
+    }
+
+    function loadEntries() {
+      try {
+        const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        return Array.isArray(stored) ? stored : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveEntries() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.entries));
+    }
+
+    function normalizeWord(value) {
+      return value
+        .trim()
+        .replace(/\s+/g, " ")
+        .replace(/[!?.,;:()[\]{}"“”„]/g, "")
+        .toLocaleLowerCase("ro-RO");
+    }
+
+    function displayWord(value) {
+      return value.trim().replace(/\s+/g, " ").slice(0, 32);
+    }
+
+    function getCounts() {
+      const map = new Map();
+      for (const entry of state.entries) {
+        const item = map.get(entry.normalized) || { word: entry.word, normalized: entry.normalized, count: 0, latest: entry.createdAt };
+        item.count += 1;
+        item.latest = entry.createdAt;
+        if (entry.word.length < item.word.length) item.word = entry.word;
+        map.set(entry.normalized, item);
+      }
+      return [...map.values()].sort((a, b) => b.count - a.count || a.word.localeCompare(b.word, "ro"));
+    }
+
+    function playTone(freq, duration, type = "triangle") {
+      if (state.muted) return;
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      if (!state.audio) state.audio = new AudioContext();
+      const ctx = state.audio;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + duration + 0.02);
+    }
+
+    function addWord(rawValue) {
+      const word = displayWord(rawValue);
+      const normalized = normalizeWord(word);
+      if (!normalized || normalized.length < 2) {
+        $("saveNote").textContent = "Scrie un cuvânt sau o expresie scurtă de minimum 2 caractere.";
+        playTone(180, 0.16, "sawtooth");
+        return;
+      }
+      state.entries.push({
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+        word,
+        normalized,
+        createdAt: new Date().toISOString()
+      });
+      saveEntries();
+      $("wordInput").value = "";
+      $("saveNote").textContent = `„${word}” a intrat în cloud.`;
+      playTone(740, 0.11, "triangle");
+      setTimeout(() => playTone(980, 0.08, "triangle"), 85);
+      render();
+    }
+
+    function renderCloud(counts) {
+      const cloud = $("cloud");
+      cloud.innerHTML = "";
+      if (!counts.length) {
+        cloud.innerHTML = '<div class="cloud-empty">Cloudul este pregătit. Primul răspuns va seta tonul conversației.</div>';
+        return;
+      }
+      const max = Math.max(...counts.map((item) => item.count));
+      counts.forEach((item, index) => {
+        const span = document.createElement("span");
+        const ratio = item.count / max;
+        const size = 18 + ratio * 54 + Math.min(item.count, 6) * 2;
+        span.className = "cloud-word";
+        span.textContent = item.word;
+        span.title = `${item.count} apariții`;
+        span.style.fontSize = `${Math.min(size, 84)}px`;
+        span.style.color = palette[index % palette.length];
+        span.style.transform = `rotate(${(index % 5 - 2) * 2.5}deg)`;
+        span.style.opacity = String(Math.max(.62, .98 - index * .012));
+        cloud.appendChild(span);
+      });
+    }
+
+    function renderTop(counts) {
+      const top = $("topWords");
+      const items = counts.slice(0, 6);
+      if (!items.length) {
+        top.innerHTML = '<div class="top-word"><span>Nu există încă răspunsuri</span><b>0</b></div>';
+        return;
+      }
+      top.innerHTML = items.map((item) => `<div class="top-word"><span>${escapeHtml(item.word)}</span><b>${item.count}</b></div>`).join("");
+    }
+
+    function renderFact() {
+      const fact = facts[state.factIndex % facts.length];
+      $("factNumber").textContent = fact[0];
+      $("factText").textContent = fact[1];
+      $("factSource").textContent = `Sursa: ${fact[2]}`;
+      const progress = $("factProgress");
+      progress.style.animation = "none";
+      progress.offsetHeight;
+      progress.style.animation = "";
+    }
+
+    function renderAdmin(counts) {
+      $("adminTotal").textContent = state.entries.length;
+      $("adminUnique").textContent = counts.length;
+      $("adminTop").textContent = counts[0] ? counts[0].word : "-";
+      $("adminLast").textContent = state.entries[0] ? new Date(state.entries[state.entries.length - 1].createdAt).toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" }) : "-";
+      const countByWord = new Map(counts.map((item) => [item.normalized, item.count]));
+      $("entriesTable").innerHTML = state.entries
+        .map((entry, index) => `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${escapeHtml(entry.word)}</td>
+            <td>${escapeHtml(entry.normalized)}</td>
+            <td>${new Date(entry.createdAt).toLocaleString("ro-RO")}</td>
+            <td>${countByWord.get(entry.normalized) || 1}</td>
+          </tr>
+        `)
+        .reverse()
+        .join("");
+    }
+
+    function render() {
+      const counts = getCounts();
+      $("totalCount").textContent = state.entries.length;
+      $("uniqueCount").textContent = counts.length;
+      $("soundBtn").textContent = state.muted ? "♩" : "♪";
+      $("topline").textContent = state.entries.length
+        ? `Cloud activ: ${state.entries.length} intrări, ${counts.length} cuvinte unice.`
+        : "Răspunsurile apar instant în cloud și rămân salvate local.";
+      renderCloud(counts);
+      renderTop(counts);
+      renderAdmin(counts);
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[char]));
+    }
+
+    function download(filename, content, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportCsv() {
+      const header = "index,word,normalized,createdAt\n";
+      const rows = state.entries.map((entry, index) => [
+        index + 1,
+        `"${entry.word.replace(/"/g, '""')}"`,
+        `"${entry.normalized.replace(/"/g, '""')}"`,
+        entry.createdAt
+      ].join(","));
+      download("fsgc-wordcloud-eu.csv", header + rows.join("\n"), "text/csv;charset=utf-8");
+      playTone(640, 0.08, "sine");
+    }
+
+    function exportJson() {
+      download("fsgc-wordcloud-eu.json", JSON.stringify(state.entries, null, 2), "application/json;charset=utf-8");
+      playTone(640, 0.08, "sine");
+    }
+
+    function openAdmin() {
+      $("adminModal").classList.add("show");
+      render();
+      playTone(520, 0.06, "sine");
+    }
+
+    function closeAdmin() {
+      $("adminModal").classList.remove("show");
+    }
+
+    $("wordForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      addWord($("wordInput").value);
+    });
+
+    $("focusBtn").addEventListener("click", () => $("wordInput").focus());
+
+    $("soundBtn").addEventListener("click", () => {
+      state.muted = !state.muted;
+      if (!state.muted) playTone(700, 0.08, "sine");
+      render();
+    });
+
+    $("shuffleFactBtn").addEventListener("click", () => {
+      state.factIndex = (state.factIndex + 1 + Math.floor(Math.random() * 7)) % facts.length;
+      renderFact();
+      playTone(580, 0.06, "sine");
+    });
+
+    $("displayModeBtn").addEventListener("click", () => {
+      state.presentation = !state.presentation;
+      document.querySelector(".stage").style.gridTemplateColumns = state.presentation ? "1fr" : "";
+      document.querySelector(".side").style.display = state.presentation ? "none" : "";
+      $("displayModeBtn").textContent = state.presentation ? "Mod complet" : "Mod prezentare";
+      playTone(470, 0.05, "sine");
+    });
+
+    $("adminHotspot").addEventListener("click", openAdmin);
+    $("closeAdmin").addEventListener("click", closeAdmin);
+    $("exportCsv").addEventListener("click", exportCsv);
+    $("exportJson").addEventListener("click", exportJson);
+
+    $("clearData").addEventListener("click", () => {
+      if (!confirm("Ștergi definitiv răspunsurile salvate în acest browser?")) return;
+      state.entries = [];
+      saveEntries();
+      closeAdmin();
+      render();
+      playTone(180, 0.16, "sawtooth");
+    });
+
+    $("suggestions").innerHTML = sampleWords.map((word) => `<button class="chip" type="button">${word}</button>`).join("");
+    $("suggestions").addEventListener("click", (event) => {
+      if (!event.target.classList.contains("chip")) return;
+      $("wordInput").value = event.target.textContent;
+      $("wordInput").focus();
+    });
+
+    window.addEventListener("keydown", (event) => {
+      if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === "a") openAdmin();
+      if (event.key === "Escape") closeAdmin();
+    });
+
+    setInterval(() => {
+      state.factIndex = (state.factIndex + 1) % facts.length;
+      renderFact();
+      playTone(390, 0.035, "sine");
+    }, 15000);
+
+    initFlag();
+    renderFact();
+    render();
+    setTimeout(() => $("wordInput").focus(), 250);
+  </script>
+</body>
+</html>
